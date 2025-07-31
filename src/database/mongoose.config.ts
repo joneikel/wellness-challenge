@@ -7,6 +7,7 @@ dotenv.config();
   imports: [
     MongooseModule.forRoot(process.env.MONGODB_URI, {
       autoIndex: true,
+       dbName: process.env.DB
     }),
   ],
 })
