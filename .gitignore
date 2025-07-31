@@ -398,3 +398,10 @@ Temporary Items
 dist
 .webpack
 .serverless/**/*.zip
+
+
+#Configuracion
+node_modules
+
+# package-lock.json
+package-lock.json
