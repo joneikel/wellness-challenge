@@ -23,3 +23,5 @@ lerna-debug.log*
 .temp
 .tmp
 
+# package-lock.json
+package-lock.json
