@@ -23,7 +23,7 @@ import { CreateUserDto } from './dto/create-user.dto';
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
-  @Post()
+  @Post("v1/create")
   @ApiOperation({ summary: 'Crear un nuevo usuario' })
   @ApiBody({
     schema: {
@@ -71,7 +71,7 @@ export class UsersController {
     }
   }
 
-  @Get(':id')
+  @Get('v1/findId/:id')
   @ApiOperation({ summary: 'Obtener un usuario por su ID' })
   @ApiParam({
     name: 'id',
@@ -119,7 +119,7 @@ export class UsersController {
     return user;
   }
 
-  @Get('email/:email')
+  @Get('v1/findEmail/:email')
   @ApiOperation({ summary: 'Obtener un usuario por su correo electrónico' })
   @ApiParam({
     name: 'email',
