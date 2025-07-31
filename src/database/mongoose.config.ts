@@ -4,6 +4,10 @@ import * as dotenv from 'dotenv';
 dotenv.config();
 
 @Module({
-  imports: [MongooseModule.forRoot(process.env.MONGODB_URI, {})],
+  imports: [
+    MongooseModule.forRoot(process.env.MONGODB_URI, {
+      autoIndex: true,
+    }),
+  ],
 })
 export class DatabaseModule {}
