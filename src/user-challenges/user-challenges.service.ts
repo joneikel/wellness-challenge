@@ -80,4 +80,144 @@ export class UserChallengesService {
       );
     }
   }
+
+  // Obtener todos los retos activos de un usuario
+  async getUserChallengesByUser(userId: string): Promise<UserChallenge[]> {
+    const now = new Date();
+    return this.userChallengeModel
+      .find({
+        userId,
+        challengeId: { $exists: true },
+      })
+      .populate('challengeId') // Cargar datos del reto
+      .exec();
+  }
+
+  // Actualizar progreso acumulativo
+  async updateCumulativeProgress(
+    userChallengeId: string,
+    value: number,
+    targetValue: number,
+  ): Promise<void> {
+    try {
+      const uc = await this.userChallengeModel.findById(userChallengeId).exec();
+      if (!uc || uc.completed) return; // No actualizar si ya completó
+      const newCumulative = (uc.cumulativeValue || 0) + value;
+      const progress = Math.min(
+        Math.round((newCumulative / targetValue) * 100),
+        100,
+      );
+
+      const update: any = {
+        cumulativeValue: newCumulative,
+        progress,
+        activitiesCount: uc.activitiesCount,
+        updatedAt: new Date(),
+      };
+
+      if (uc.progress !== progress) {
+        update.activitiesCount = uc.activitiesCount + 1;
+      }
+
+      // Si alcanza el 100%, marcar como completado
+      if (progress === 100 && !uc.completed) {
+        update.completed = true;
+        update.completedAt = new Date();
+      }
+
+      await this.userChallengeModel
+        .updateOne({ _id: userChallengeId }, { $set: update })
+        .exec();
+    } catch (error) {
+      console.error('updateCumulativeProgress: ', error);
+      throw new HttpException(
+        'Failed to update cumulative progress',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  // Actualizar progreso diario
+  async updateDailyProgress(
+    userChallengeId: string,
+    date: Date,
+    dailyGoalMet: boolean,
+    requiredDays: number,
+  ): Promise<void> {
+    try {
+      const uc = await this.userChallengeModel.findById(userChallengeId).exec();
+      if (!uc || uc.completed) return;
+
+      // Normalizar la fecha (sin hora) para comparar
+      const normalizedDate = new Date(date);
+      normalizedDate.setHours(0, 0, 0, 0);
+
+      // Buscar si ya existe una entrada para esta fecha
+      const existingIndex = uc.dailyProgress?.findIndex(
+        (dp) =>
+          new Date(dp.date).toDateString() === normalizedDate.toDateString(),
+      );
+
+      let newDailyProgress = [...(uc.dailyProgress || [])];
+
+      if (existingIndex >= 0) {
+        // Si ya existe, actualizar
+        if (newDailyProgress[existingIndex].achieved === dailyGoalMet) {
+          return; // No hay cambios
+        }
+        newDailyProgress[existingIndex] = {
+          date: normalizedDate,
+          achieved: dailyGoalMet,
+        };
+      } else {
+        // Si no existe, agregar
+        newDailyProgress.push({ date: normalizedDate, achieved: dailyGoalMet });
+      }
+
+      const daysAchieved = newDailyProgress.filter((dp) => dp.achieved).length;
+      const progress = Math.min(
+        Math.round((daysAchieved / requiredDays) * 100),
+        100,
+      );
+
+      const update: any = {
+        dailyProgress: newDailyProgress,
+        progress,
+        $inc: { activitiesCount: 1 },
+        updatedAt: new Date(),
+      };
+
+      if (progress === 100 && !uc.completed) {
+        update.completed = true;
+        update.completedAt = new Date();
+      }
+
+      await this.userChallengeModel
+        .updateOne({ _id: userChallengeId }, { $set: update })
+        .exec();
+    } catch (error) {
+      console.error('updateDailyProgress: ', error);
+      throw new HttpException(
+        'Failed to update daily progress',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+  // Incrementar contador de actividades
+  async incrementActivitiesCount(userChallengeId: string): Promise<void> {
+    try {
+      await this.userChallengeModel
+        .updateOne(
+          { _id: userChallengeId },
+          { $inc: { activitiesCount: 1 }, updatedAt: new Date() },
+        )
+        .exec();
+    } catch (error) {
+      console.error('incrementActivitiesCount: ', error);
+      throw new HttpException(
+        'Failed to increment activities count',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
 }

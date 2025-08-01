@@ -58,8 +58,6 @@ export class ActivitiesService {
       };
     }
 
-    console.log({ updateFields });
-
     // Operación atómica: upsert con acumulación
     let activity: DailyActivity;
     try {
@@ -71,6 +69,7 @@ export class ActivitiesService {
         )
         .exec();
     } catch (error) {
+      console.error('createActivity: ', error);
       throw new HttpException(
         'Failed to register activity',
         HttpStatus.INTERNAL_SERVER_ERROR,
@@ -78,14 +77,15 @@ export class ActivitiesService {
     }
 
     // Disparar actualización de progreso en retos activos
-    //await this.updateUserChallengeProgress(dto.userId, dto.date);
+    await this.updateUserChallengeProgress(dto.userId, dto.date, dto.steps);
 
     return activity;
   }
 
-/*   private async updateUserChallengeProgress(
+  private async updateUserChallengeProgress(
     userId: string,
     activityDate: Date,
+    steps: number,
   ) {
     // Obtener todos los UserChallenges activos del usuario
     const userChallenges =
@@ -122,9 +122,8 @@ export class ActivitiesService {
         .exec();
 
       if (!activity) continue;
-
       let value: number | undefined;
-      if (challenge.type === 'steps') value = activity.steps;
+      if (challenge.type === 'steps') value = steps;
       else if (challenge.type === 'sleep') value = activity.sleep;
       else if (challenge.type === 'cardio_points')
         value = activity.cardioPoints;
@@ -147,9 +146,6 @@ export class ActivitiesService {
           challenge.requiredDays,
         );
       }
-
-      // Incrementar contador de actividades
-      await this.userChallengesService.incrementActivitiesCount(uc._id);
     }
-  } */
+  }
 }
