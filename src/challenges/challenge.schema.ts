@@ -1,7 +1,7 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document } from 'mongoose';
 
-@Schema()
+@Schema({ collection: 'Challenges' })
 export class Challenge extends Document {
   @Prop({ required: true })
   name: string;
@@ -21,7 +21,7 @@ export class Challenge extends Document {
   @Prop({ required: true })
   targetValue: number;
 
-  @Prop() // Opcional solo para metas diarias
+  @Prop()
   requiredDays?: number;
 
   @Prop({ default: Date.now })

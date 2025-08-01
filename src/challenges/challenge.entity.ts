@@ -6,6 +6,6 @@ export interface Challenge {
   endDate: Date;
   goalType: 'cumulative' | 'daily';
   targetValue: number;
-  requiredDays?: number; // Solo para metas diarias
+  requiredDays?: number;
   createdAt?: Date;
 }
