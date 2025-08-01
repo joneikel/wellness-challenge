@@ -15,7 +15,7 @@ import { DailyActivity } from './activity.entity';
 export class ActivitiesController {
   constructor(private readonly activitiesService: ActivitiesService) {}
 
-  @Post("v1/create")
+  @Post('v1/create')
   @ApiOperation({
     summary: 'Registrar actividad diaria (pasos, sueño, cardio)',
   })
@@ -52,12 +52,45 @@ export class ActivitiesController {
   @ApiResponse({
     status: 400,
     description: 'Datos inválidos, fecha futura o sin campos de actividad',
+    schema: {
+      type: 'object',
+      properties: {
+        statusCode: { type: 'number', example: 400 },
+        message: {
+          type: 'string',
+          example: 'Cannot register activity for future dates',
+        },
+      },
+    },
   })
-  @ApiResponse({ status: 404, description: 'Usuario no encontrado' })
+  @ApiResponse({
+    status: 404,
+    description: 'Usuario no encontrado',
+    schema: {
+      type: 'object',
+      properties: {
+        statusCode: { type: 'number', example: 404 },
+        message: {
+          type: 'string',
+          example: 'User not found',
+        },
+      },
+    },
+  })
   @ApiResponse({
     status: 500,
     description:
       'Error interno del servidor (fallo en DB o actualización de progreso)',
+    schema: {
+      type: 'object',
+      properties: {
+        statusCode: { type: 'number', example: 500 },
+        message: {
+          type: 'string',
+          example: 'Failed server error',
+        },
+      },
+    },
   })
   async createActivity(@Body() dto: CreateActivityDto): Promise<DailyActivity> {
     try {

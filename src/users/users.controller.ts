@@ -23,7 +23,7 @@ import { CreateUserDto } from './dto/create-user.dto';
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
-  @Post("v1/create")
+  @Post('v1/create')
   @ApiOperation({ summary: 'Crear un nuevo usuario' })
   @ApiBody({
     schema: {
@@ -58,8 +58,8 @@ export class UsersController {
     schema: {
       type: 'object',
       properties: {
-            message: { type: 'string', example: 'Email ya existe' },
-            statusCode: { type: 'number', example: 400 },
+        message: { type: 'string', example: 'Email ya existe' },
+        statusCode: { type: 'number', example: 400 },
       },
     },
   })
@@ -144,7 +144,20 @@ export class UsersController {
       },
     },
   })
-  @ApiResponse({ status: 404, description: 'Usuario no encontrado' })
+  @ApiResponse({
+    status: 404,
+    description: 'Usuario no encontrado',
+    schema: {
+      type: 'object',
+      properties: {
+        statusCode: { type: 'number', example: 404 },
+        message: {
+          type: 'string',
+          example: 'User not found',
+        },
+      },
+    },
+  })
   async getUserByEmail(@Param('email') email: string): Promise<User> {
     const user = await this.usersService.getUserByEmail(email);
     if (!user) {

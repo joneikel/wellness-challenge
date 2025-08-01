@@ -125,7 +125,20 @@ export class ChallengesController {
     description: 'Reto encontrado',
     type: CreateChallengeDto,
   })
-  @ApiResponse({ status: 404, description: 'Reto no encontrado' })
+  @ApiResponse({
+    status: 404,
+    description: 'Reto no encontrado',
+    schema: {
+      type: 'object',
+      properties: {
+        statusCode: { type: 'number', example: 404 },
+        message: {
+          type: 'string',
+          example: 'Wellness not found',
+        },
+      },
+    },
+  })
   async getChallengeById(@Param('id') id: string): Promise<Challenge> {
     const challenge = await this.challengesService.getChallengeById(id);
     if (!challenge) {
