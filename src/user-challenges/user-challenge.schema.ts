@@ -1,16 +1,15 @@
-// src/user-challenges/user-challenge.schema.ts
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document } from 'mongoose';
 
-@Schema()
+@Schema({ collection: 'UserChallenges' }) 
 export class UserChallenge extends Document {
-  @Prop({ required: true, ref: 'User' }) // Referencia al modelo User
+  @Prop({ required: true, ref: 'User' })
   userId: string;
 
-  @Prop({ required: true, ref: 'Challenge' }) // Referencia al modelo Challenge
+  @Prop({ required: true, ref: 'Challenge' })
   challengeId: string;
 
-  @Prop({ default: Date.now })
+  @Prop({ required: true, default: Date.now })
   joinedAt: Date;
 
   @Prop({ default: false })
@@ -22,14 +21,17 @@ export class UserChallenge extends Document {
   @Prop({ default: 0 })
   progress: number;
 
-  @Prop()
-  cumulativeValue?: number; // Solo para metas acumulativas
+  @Prop({ default: 0 })
+  cumulativeValue?: number;
 
-  @Prop()
+  @Prop({ default: () => [] })
   dailyProgress?: {
     date: Date;
     achieved: boolean;
-  }[]; // Solo para metas diarias
+  }[];
+
+  @Prop({ default: 0 })
+  activitiesCount: number;
 
   @Prop({ default: Date.now })
   createdAt?: Date;
@@ -39,3 +41,6 @@ export class UserChallenge extends Document {
 }
 
 export const UserChallengeSchema = SchemaFactory.createForClass(UserChallenge);
+
+// Índice único: un usuario solo puede unirse una vez a un reto
+UserChallengeSchema.index({ userId: 1, challengeId: 1 }, { unique: true });

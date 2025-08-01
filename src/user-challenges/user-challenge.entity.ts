@@ -6,11 +6,12 @@ export interface UserChallenge {
   completed: boolean;
   completedAt?: Date;
   progress: number;
-  cumulativeValue?: number; // Solo para metas acumulativas
+  cumulativeValue?: number;
   dailyProgress?: {
     date: Date;
     achieved: boolean;
-  }[]; // Solo para metas diarias
+  }[];
+  activitiesCount: number;
   createdAt?: Date;
   updatedAt?: Date;
 }
