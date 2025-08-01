@@ -250,4 +250,37 @@ export class UserChallengesService {
       joinedAt: uc.joinedAt,
     }));
   }
+
+  // Mostrar el ranking de un reto específico
+  async getLeaderboard(challengeId: string): Promise<any[]> {
+    // Validar que el reto exista
+    const challenge =
+      await this.challengesService.getChallengeById(challengeId);
+    if (!challenge) {
+      throw new HttpException('Challenge not found', HttpStatus.NOT_FOUND);
+    }
+
+    // Obtener todos los UserChallenges del reto
+    const userChallenges = await this.userChallengeModel
+      .find({ challengeId })
+      .sort({ progress: -1, completedAt: 1 }) // Progreso desc, quien completó antes primero
+      .exec();
+
+    // Obtener datos de usuarios
+    const userIds = userChallenges.map((uc) => uc.userId);
+    const users = await this.usersService.getUsersByIds(userIds);
+
+    // Mapear respuesta
+    return userChallenges.map((uc) => {
+      const user = users.find((u) => u._id.toString() === uc.userId.toString());
+      return {
+        name: user?.name || 'Unknown',
+        email: user?.email || 'unknown@example.com',
+        progress: uc.progress,
+        completed: uc.completed,
+        completedAt: uc.completedAt,
+        activitiesCount: uc.activitiesCount,
+      };
+    });
+  }
 }

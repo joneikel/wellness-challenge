@@ -196,11 +196,85 @@ export class UserChallengesController {
         userId,
       );
     } catch (error) {
+      console.error('getUserChallenges: ', error);
+
       if (error instanceof HttpException) {
         throw error;
       }
       throw new HttpException(
         'Failed to retrieve user challenges',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  @Get('v1/leaderboard/:challengeId')
+  @ApiOperation({ summary: 'Obtener el leaderboard de un reto' })
+  @ApiParam({
+    name: 'challengeId',
+    type: 'string',
+    description: 'ID del reto',
+    example: '65abc1234567890dff',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Ranking del reto ordenado por progreso y fecha de completado',
+    schema: {
+      type: 'array',
+      items: {
+        type: 'object',
+        properties: {
+          name: { type: 'string', example: 'Ana Pérez' },
+          email: { type: 'string', example: 'ana@example.com' },
+          progress: { type: 'number', example: 100 },
+          completed: { type: 'boolean', example: true },
+          completedAt: { type: 'string', format: 'date-time', nullable: true },
+          activitiesCount: { type: 'number', example: 6 },
+        },
+      },
+    },
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Reto no encontrado',
+    schema: {
+      type: 'object',
+      properties: {
+        statusCode: { type: 'number', example: 404 },
+        message: {
+          type: 'string',
+          example: 'Chellenge not found',
+        },
+      },
+    },
+  })
+  @ApiResponse({
+    status: 500,
+    description: 'Error interno del servidor',
+    schema: {
+      type: 'object',
+      properties: {
+        statusCode: { type: 'number', example: 500 },
+        message: {
+          type: 'string',
+          example: 'Failed to enroll user due to a server error',
+        },
+        error: { type: 'string', example: 'Internal Server Error' },
+      },
+    },
+  })
+  async getLeaderboard(
+    @Param('challengeId') challengeId: string,
+  ): Promise<any[]> {
+    try {
+      return await this.userChallengesService.getLeaderboard(challengeId);
+    } catch (error) {
+      console.error('getLeaderboard: ', error);
+      if (error instanceof HttpException) {
+        throw error;
+      }
+      throw new HttpException(
+        'Failed to retrieve leaderboard',
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
