@@ -4,17 +4,18 @@ import {
   Param,
   HttpException,
   HttpStatus,
+  Get,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiParam } from '@nestjs/swagger';
 import { UserChallengesService } from './user-challenges.service';
 import { UserChallenge } from './user-challenge.entity';
 
 @ApiTags('user-challenges')
-@Controller('userChallanges/v1/:userId/:challengeId')
+@Controller('userChallanges/')
 export class UserChallengesController {
   constructor(private readonly userChallengesService: UserChallengesService) {}
 
-  @Post()
+  @Post('v1/:userId/:challengeId')
   @ApiOperation({ summary: 'Unirse a un reto de bienestar' })
   @ApiParam({
     name: 'userId',
@@ -119,6 +120,87 @@ export class UserChallengesController {
       }
       throw new HttpException(
         'An unexpected error occurred',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  @Get('v1/findAll/:userId')
+  @ApiOperation({
+    summary: 'Obtener todos los retos de un usuario con progreso',
+  })
+  @ApiParam({
+    name: 'userId',
+    type: 'string',
+    description: 'ID del usuario',
+    example: '65abc1234567890def',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Lista de retos del usuario con progreso',
+    schema: {
+      type: 'array',
+      items: {
+        type: 'object',
+        properties: {
+          challenge: {
+            type: 'object',
+            properties: {
+              name: { type: 'string', example: '70,000 pasos en 7 días' },
+              type: { type: 'string', example: 'steps' },
+              startDate: { type: 'string', format: 'date-time' },
+              endDate: { type: 'string', format: 'date-time' },
+            },
+          },
+          progress: { type: 'number', example: 65 },
+          completed: { type: 'boolean', example: true },
+          completedAt: { type: 'string', format: 'date-time', nullable: true },
+          activitiesCount: { type: 'number', example: 4 },
+          joinedAt: { type: 'string', format: 'date-time' },
+        },
+      },
+    },
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Usuario no encontrado',
+    schema: {
+      type: 'object',
+      properties: {
+        statusCode: { type: 'number', example: 404 },
+        message: {
+          type: 'string',
+          example: 'User not found',
+        },
+      },
+    },
+  })
+  @ApiResponse({
+    status: 500,
+    description: 'Error interno del servidor',
+    schema: {
+      type: 'object',
+      properties: {
+        statusCode: { type: 'number', example: 500 },
+        message: {
+          type: 'string',
+          example: 'Failed to enroll user due to a server error',
+        },
+        error: { type: 'string', example: 'Internal Server Error' },
+      },
+    },
+  })
+  async getUserChallenges(@Param('userId') userId: string): Promise<any[]> {
+    try {
+      return await this.userChallengesService.getUserChallengesWithDetails(
+        userId,
+      );
+    } catch (error) {
+      if (error instanceof HttpException) {
+        throw error;
+      }
+      throw new HttpException(
+        'Failed to retrieve user challenges',
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }

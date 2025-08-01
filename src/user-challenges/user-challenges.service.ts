@@ -220,4 +220,34 @@ export class UserChallengesService {
       );
     }
   }
+
+  // Obtener la lista de retos del usuario con detalles
+  async getUserChallengesWithDetails(userId: string): Promise<any[]> {
+    // Validar que el usuario exista
+    const user = await this.usersService.getUserById(userId);
+    if (!user) {
+      throw new HttpException('User not found', HttpStatus.NOT_FOUND);
+    }
+
+    // Obtener todos los UserChallenges del usuario
+    const userChallenges = await this.userChallengeModel
+      .find({ userId })
+      .populate('challengeId', 'name type startDate endDate') // Cargar solo campos necesarios
+      .exec();
+
+    // Mapear a una respuesta limpia
+    return userChallenges.map((uc: any) => ({
+      challenge: {
+        name: uc.challengeId.name,
+        type: uc.challengeId.type,
+        startDate: uc.challengeId.startDate,
+        endDate: uc.challengeId.endDate,
+      },
+      progress: uc.progress,
+      completed: uc.completed,
+      completedAt: uc.completedAt,
+      activitiesCount: uc.activitiesCount,
+      joinedAt: uc.joinedAt,
+    }));
+  }
 }
