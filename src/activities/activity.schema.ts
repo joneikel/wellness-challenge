@@ -1,9 +1,9 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document } from 'mongoose';
 
-@Schema()
+@Schema({ collection: 'DailyActivities' })
 export class DailyActivity extends Document {
-  @Prop({ required: true, ref: 'User' }) // Referencia al modelo User
+  @Prop({ required: true, ref: 'User' })
   userId: string;
 
   @Prop({ required: true })
@@ -27,4 +27,5 @@ export class DailyActivity extends Document {
 
 export const ActivitySchema = SchemaFactory.createForClass(DailyActivity);
 
+// Índice único: un usuario solo puede tener un registro por día
 ActivitySchema.index({ userId: 1, date: 1 }, { unique: true });
